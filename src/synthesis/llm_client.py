@@ -38,7 +38,7 @@ class LocalLLMClient:
 
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.post(self.base_url, json=payload, timeout=60) as response:
+                async with session.post(self.base_url, json=payload, timeout=180) as response:
                     if response.status == 200:
                         data = await response.json()
                         # Formato Ollama por defecto, ajustar si es vLLM (OpenAI format)
@@ -47,5 +47,5 @@ class LocalLLMClient:
                         return f"Error en LLM API: Status {response.status}"
         except Exception as e:
             # En caso de fallo del LLM, el pipeline no debe caer, devuelve fallback.
-            print(f"[Error LLM] {e}")
+            print(f"[Error LLM] {repr(e)}")
             return "No se pudo generar la síntesis narrativa por un error en el LLM local. Revisar logs."
