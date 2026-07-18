@@ -59,8 +59,14 @@ async def main():
         print(f"  {ind.simbolo}: RSI={ind.rsi:.1f}, MACD={ind.macd:+.4f}, Tendencia={ind.tendencia}, Rec={ind.recomendacion}")
 
     # 4. Preparar contexto enriquecido para el LLM
+    # Nota: stripeamos precios_historicos para no malgastar tokens del LLM
+    def _clean_for_llm(ind_dict):
+        d = ind_dict.copy()
+        d.pop('precios_historicos', None)  # El LLM solo necesita indicadores, no el historial raw
+        return d
+
     context_para_llm = {
-        "crypto_indicators": [i.model_dump() for i in indicadores_cripto],
+        "crypto_indicators": [_clean_for_llm(i.model_dump()) for i in indicadores_cripto],
         "sports_analysis": [a.model_dump() for a in analisis_deportivo],
         "news_groups": {k: [n.model_dump() for n in v] for k, v in noticias_agrupadas.items()},
         "sentimiento_noticias": sentimiento_noticias

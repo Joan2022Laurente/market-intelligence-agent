@@ -128,6 +128,7 @@ class CryptoAnalyst:
                 tendencia=tendencia,
                 recomendacion=recomendacion,
                 cambio_pct_24h=p.cambio_pct_24h,
+                cambio_pct_7d=p.cambio_pct_7d,
                 dominancia=55.0 if p.simbolo == "BTC" else None,
                 timestamp=datetime.datetime.utcnow()
             ))

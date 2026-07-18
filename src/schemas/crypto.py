@@ -22,5 +22,6 @@ class IndicadorTecnico(BaseModel):
     tendencia: str = Field("NEUTRAL", description="ALCISTA / BAJISTA / NEUTRAL")
     recomendacion: str = Field("ESPERAR", description="COMPRAR / MANTENER / ESPERAR / REDUCIR")
     cambio_pct_24h: Optional[float] = Field(None, description="Cambio % en 24h")
+    cambio_pct_7d: Optional[float] = Field(None, description="Cambio % en 7 días")
     dominancia: Optional[float] = Field(None, description="Dominancia en el mercado (%)")
     timestamp: datetime = Field(default_factory=datetime.utcnow, description="Fecha y hora del cálculo")
