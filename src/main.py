@@ -8,7 +8,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from collectors.crypto import CoinGeckoCollector
 from collectors.sports import MockSportsCollector
-from collectors.news import MockNewsCollector
+from collectors.news import RSSNewsCollector
 
 from agents.crypto_analyst import CryptoAnalyst
 from agents.sports_analyst import SportsAnalyst
@@ -26,7 +26,7 @@ async def main():
     collectors = [
         CoinGeckoCollector(),
         MockSportsCollector(),
-        MockNewsCollector()
+        RSSNewsCollector()
     ]
     raw_data = await asyncio.gather(*(c.collect() for c in collectors))
     
