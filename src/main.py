@@ -107,7 +107,8 @@ async def main():
             "tipo_cambio_pen": usd_to_pen,
             "nota": "Saldos extraídos en tiempo real desde la API de Binance. Usa tipo_cambio_pen para mostrar el valor total del portafolio en Soles (PEN)."
         },
-        "predicciones_activas": predicciones,
+        "predicciones_activas": predicciones.get("activas", []),
+        "historial_predicciones": predicciones.get("historial", []),
         "crypto_indicators": [_clean_for_llm(i.model_dump()) for i in indicadores_cripto],
         "sports_analysis": [a.model_dump() for a in analisis_deportivo],
         "news_groups": {k: [n.model_dump() for n in v] for k, v in noticias_agrupadas.items()},
