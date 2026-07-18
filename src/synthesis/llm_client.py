@@ -68,7 +68,7 @@ class LocalLLMClient:
             "stream": False,
             "options": {
                 "temperature": 0.2,
-                "num_predict": 800,
+                "num_predict": 1500,
                 "stop": ["FIN DEL INFORME", "---", "### 🟢", "### 🟡"]
             }
         }
