@@ -11,8 +11,8 @@ class RealSportsCollector(BaseCollector):
     def __init__(self):
         super().__init__(name="TheOddsAPI", timeout=15)
         self.api_key = os.environ.get("ODDS_API_KEY")
-        # soccer_epl = Premier League, puedes cambiar a soccer_epl, americanfootball_nfl, basketball_nba, etc.
-        self.sport = "soccer_epl"
+        # 'upcoming' trae los próximos partidos de todas las principales competiciones (fútbol, NFL, NBA, etc.)
+        self.sport = "upcoming"
         self.base_url = "https://api.the-odds-api.com/v4"
 
     async def fetch_data(self) -> List[CuotaDeportiva]:
@@ -53,8 +53,10 @@ class RealSportsCollector(BaseCollector):
 
         resultados = []
         try:
-            for game in data[:5]:  # Los 5 próximos partidos
-                evento = f"{game['home_team']} vs {game['away_team']}"
+            for game in data[:8]:  # Los 8 próximos partidos más inminentes
+                # Prepend the sport title so the user knows the competition
+                competicion = game.get('sport_title', 'Competición')
+                evento = f"[{competicion}] {game['home_team']} vs {game['away_team']}"
                 if not game.get('bookmakers'):
                     continue
 
