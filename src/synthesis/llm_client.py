@@ -50,7 +50,8 @@ class LocalLLMClient:
             "REGLAS CRÍTICAS:\n"
             "- USA los números exactos del JSON. No los redondees ni cambies.\n"
             "- NO repitas secciones. Cada sección aparece UNA sola vez.\n"
-            "- NO añadas secciones adicionales ni sub-análisis extra."
+            "- NO añadas secciones adicionales ni sub-análisis extra.\n"
+            "- Al terminar el paso 3 del Plan de Acción, escribe EXACTAMENTE: 'FIN DEL INFORME'."
         )
 
         user_prompt = (
@@ -66,8 +67,9 @@ class LocalLLMClient:
             ],
             "stream": False,
             "options": {
-                "temperature": 0.3,   # Bajo para análisis factual consistente
-                "num_predict": 1500   # Respuesta suficientemente larga
+                "temperature": 0.2,
+                "num_predict": 800,
+                "stop": ["FIN DEL INFORME", "---", "### 🟢", "### 🟡"]
             }
         }
 
