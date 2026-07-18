@@ -12,12 +12,13 @@ import aiohttp
 
 class LocalLLMClient:
     """
-    Cliente para comunicarse con un LLM local compatible con la API de Ollama
-    (Ollama) corriendo en la GPU L4/L40S.
+    Cliente para comunicarse con la API de OpenRouter, utilizando el modelo
+    gratuito tencent/hy3:free (Tencent Hunyuan 3).
     """
-    def __init__(self, base_url: str = "http://localhost:11434/api/chat", model_name: str = "qwen2.5:32b-instruct-q4_K_M"):
-        self.base_url = base_url
+    def __init__(self, model_name: str = "tencent/hy3:free"):
+        self.base_url = "https://openrouter.ai/api/v1/chat/completions"
         self.model_name = model_name
+        self.api_key = os.environ.get("OPENROUTER_API_KEY")
 
     async def generate_synthesis(self, context_data: Dict[str, Any]) -> str:
         """
@@ -59,30 +60,37 @@ class LocalLLMClient:
             f"{json.dumps(context_data, indent=2, default=str)}"
         )
 
+        if not self.api_key:
+            return "⚠️ ERROR: No se encontró OPENROUTER_API_KEY en las variables de entorno."
+
         payload = {
             "model": self.model_name,
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            "stream": False,
-            "options": {
-                "temperature": 0.2,
-                "num_predict": 1000,
-                "repeat_penalty": 1.2,
-                "stop": ["FIN DEL INFORME", "---", "### 🟢", "### 🟡"]
-            }
+            "temperature": 0.2,
+            "max_tokens": 1500,
+            "frequency_penalty": 1.0,
+            "stop": ["FIN DEL INFORME", "---", "### 🟢", "### 🟡"]
+        }
+
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://github.com/Joan2022Laurente/market-intelligence-agent",
+            "X-Title": "Market Intelligence Agent"
         }
 
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.post(self.base_url, json=payload, timeout=300) as response:
+                async with session.post(self.base_url, headers=headers, json=payload, timeout=300) as response:
                     if response.status == 200:
                         data = await response.json()
-                        return data.get("message", {}).get("content", "Error leyendo respuesta del LLM.")
+                        return data.get("choices", [{}])[0].get("message", {}).get("content", "Error leyendo respuesta del LLM.")
                     else:
                         body = await response.text()
-                        return f"Error en LLM API: Status {response.status} — {body[:200]}"
+                        return f"Error en API OpenRouter: Status {response.status} — {body[:200]}"
         except Exception as e:
             print(f"[Error LLM] {repr(e)}")
-            return "⚠️ No se pudo generar la síntesis narrativa. El LLM local no está disponible. Revisa los datos crudos en las secciones de abajo."
+            return "⚠️ No se pudo generar la síntesis narrativa. Revisa tu conexión a OpenRouter y tu API Key."
