@@ -3,7 +3,7 @@ import aiohttp
 import hashlib
 import hmac
 import time
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 import os
 
 from collectors.base import BaseCollector
@@ -36,9 +36,9 @@ class BinancePortfolioCollector(BaseCollector):
         return {"X-MBX-APIKEY": self.api_key}
 
     async def _get_spot_balances(self, session: aiohttp.ClientSession) -> Dict[str, float]:
-        """Obtiene los saldos libres en la billetera Spot (excluye ceros)."""
+        """Obtiene todos los saldos (free + locked) de la cuenta Spot con saldo > 0."""
         timestamp = int(time.time() * 1000)
-        query = f"timestamp={timestamp}&omitZeroBalances=true"
+        query = f"timestamp={timestamp}"
         signature = self._sign(query)
         url = f"{self.base_url}/api/v3/account?{query}&signature={signature}"
 
@@ -50,7 +50,7 @@ class BinancePortfolioCollector(BaseCollector):
                     return {}
                 data = await resp.json()
                 return {
-                    b["asset"]: float(b["free"]) + float(b["locked"])
+                    b["asset"]: round(float(b["free"]) + float(b["locked"]), 8)
                     for b in data.get("balances", [])
                     if float(b["free"]) + float(b["locked"]) > 0
                 }
@@ -59,28 +59,34 @@ class BinancePortfolioCollector(BaseCollector):
             return {}
 
     async def _get_earn_balances(self, session: aiohttp.ClientSession) -> Dict[str, float]:
-        """Obtiene las posiciones activas en Binance Simple Earn Flexible."""
+        """
+        Binance.US no soporta el endpoint SAPI de Simple Earn.
+        Como alternativa, extraemos los saldos 'locked' del endpoint principal
+        de la cuenta, que en Binance.US incluye fondos en productos de ahorro.
+        """
         timestamp = int(time.time() * 1000)
         query = f"timestamp={timestamp}"
         signature = self._sign(query)
-        url = f"{self.base_url}/sapi/v1/simple-earn/flexible/position?{query}&signature={signature}"
+        url = f"{self.base_url}/api/v3/account?{query}&signature={signature}"
 
         try:
             async with session.get(url, headers=self._get_headers()) as resp:
                 if resp.status != 200:
                     body = await resp.text()
-                    print(f"[Portfolio Earn] Error {resp.status}: {body[:150]}")
+                    print(f"[Portfolio Earn/Locked] Error {resp.status}: {body[:150]}")
                     return {}
                 data = await resp.json()
-                earn_balances = {}
-                for pos in data.get("rows", []):
-                    asset = pos.get("asset", "")
-                    total = float(pos.get("totalAmount", 0))
-                    if total > 0:
-                        earn_balances[asset] = earn_balances.get(asset, 0) + total
-                return earn_balances
+                # Los fondos en Earn aparecen como 'locked' en el balance de Spot
+                locked = {
+                    b["asset"]: round(float(b["locked"]), 8)
+                    for b in data.get("balances", [])
+                    if float(b["locked"]) > 0
+                }
+                if locked:
+                    print(f"[Portfolio Earn/Locked] Fondos bloqueados (Earn): {locked}")
+                return locked
         except Exception as e:
-            print(f"[Portfolio Earn] Excepción: {e}")
+            print(f"[Portfolio Earn/Locked] Excepción: {e}")
             return {}
 
     async def fetch_data(self) -> Dict[str, Any]:
