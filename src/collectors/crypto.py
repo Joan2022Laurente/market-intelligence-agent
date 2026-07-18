@@ -9,8 +9,8 @@ import json
 class BinanceCollector(BaseCollector):
     def __init__(self):
         super().__init__(name="Binance API", timeout=30)
-        self.ticker_url = "https://api.binance.com/api/v3/ticker/24hr"
-        self.klines_url = "https://api.binance.com/api/v3/klines"
+        self.ticker_url = "https://api.binance.us/api/v3/ticker/24hr"
+        self.klines_url = "https://api.binance.us/api/v3/klines"
         self.coin_mapping = {
             "BTCUSDT": "BTC",
             "ETHUSDT": "ETH",
