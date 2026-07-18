@@ -1,6 +1,6 @@
 import pytest
 import asyncio
-from collectors.crypto import MockCryptoCollector
+from collectors.crypto import CoinGeckoCollector
 from collectors.sports import MockSportsCollector
 from collectors.news import MockNewsCollector
 
@@ -11,7 +11,7 @@ async def test_concurrent_collectors():
     y que todos devuelvan resultados estructurados válidos.
     """
     collectors = [
-        MockCryptoCollector(),
+        CoinGeckoCollector(),
         MockSportsCollector(),
         MockNewsCollector()
     ]

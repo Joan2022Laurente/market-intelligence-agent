@@ -6,7 +6,7 @@ import os
 # Asegurar que importamos desde src
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from collectors.crypto import MockCryptoCollector
+from collectors.crypto import CoinGeckoCollector
 from collectors.sports import MockSportsCollector
 from collectors.news import MockNewsCollector
 
@@ -24,7 +24,7 @@ async def main():
     # 1. Recolección en paralelo (Async)
     print("Recolectando datos en paralelo...")
     collectors = [
-        MockCryptoCollector(),
+        CoinGeckoCollector(),
         MockSportsCollector(),
         MockNewsCollector()
     ]
