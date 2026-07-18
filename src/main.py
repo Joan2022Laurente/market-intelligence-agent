@@ -2,9 +2,13 @@ import asyncio
 import json
 import sys
 import os
+from dotenv import load_dotenv
 
 # Asegurar que importamos desde src
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Cargar variables del .env
+load_dotenv()
 
 from collectors.crypto import BinanceCollector
 from collectors.sports import RealSportsCollector
@@ -44,10 +48,10 @@ async def main():
     )
     total_earn_usd = portfolio.get("earn", {})
 
-    print(f"  ✓ Cripto: {len(precios)} activos")
-    print(f"  ✓ Deportes: {len(cuotas)} partidos {'(REALES)' if cuotas and not cuotas[0].es_simulado else '(Simulados)'}")
-    print(f"  ✓ Noticias: {len(noticias)} artículos de {len(set(n.fuente for n in noticias))} fuentes")
-    print(f"  ✓ Portafolio Binance: Spot={portfolio.get('spot', {})}, Earn={total_earn_usd}")
+    print(f"  [+] Cripto: {len(precios)} activos")
+    print(f"  [+] Deportes: {len(cuotas)} partidos {'(REALES)' if cuotas and not cuotas[0].es_simulado else '(Simulados)'}")
+    print(f"  [+] Noticias: {len(noticias)} artículos de {len(set(n.fuente for n in noticias))} fuentes")
+    print(f"  [+] Portafolio Binance: Spot={portfolio.get('spot', {})}, Earn={total_earn_usd}")
 
     # 2. Guardar datos crudos en DuckDB
     print("Guardando datos crudos en DuckDB...")
@@ -79,7 +83,8 @@ async def main():
         "portfolio_binance": {
             "spot": portfolio.get("spot", {}),
             "earn": portfolio.get("earn", {}),
-            "nota": "Saldos extraídos en tiempo real desde la API de Binance. Usa estos valores exactos para calcular porcentajes de riesgo."
+            "pnl_data": portfolio.get("pnl_data", {}),
+            "nota": "Saldos extraídos en tiempo real desde la API de Binance. 'pnl_data' contiene el precio promedio de compra histórico (avg_buy_price) de los activos. Úsalo para calcular ganancias o pérdidas (PNL) contra el precio actual."
         },
         "crypto_indicators": [_clean_for_llm(i.model_dump()) for i in indicadores_cripto],
         "sports_analysis": [a.model_dump() for a in analisis_deportivo],
@@ -103,7 +108,7 @@ async def main():
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         f.write(reporte_md)
     print(f"Reporte guardado en {OUTPUT_FILE}")
-    print("✅ Pipeline finalizado exitosamente.")
+    print("[SUCCESS] Pipeline finalizado exitosamente.")
 
 if __name__ == "__main__":
     asyncio.run(main())
