@@ -34,6 +34,41 @@ class MarkdownGenerator:
             
         md += "\n"
         
+        # Tabla de Cripto
+        md += "### Indicadores Crypto\n"
+        md += "| Activo | RSI Estimado | MACD | Dominancia |\n"
+        md += "|---|---|---|---|\n"
+        
+        crypto_data = raw_context.get("crypto_indicators", [])
+        if crypto_data:
+            for c in crypto_data:
+                rsi = f"{c.get('rsi', 0):.1f}"
+                macd = f"{c.get('macd', 0):.2f}"
+                dom = f"{c.get('dominancia', 0):.1f}%" if c.get('dominancia') else "-"
+                md += f"| {c['simbolo']} | {rsi} | {macd} | {dom} |\n"
+        else:
+            md += "| *Sin datos* | - | - | - |\n"
+            
+        md += "\n"
+        
+        # Tabla de Noticias
+        md += "### Resumen de Noticias (RSS)\n"
+        md += "| Categoría | Título | Impacto |\n"
+        md += "|---|---|---|\n"
+        
+        news_data = raw_context.get("news_groups", {})
+        if news_data:
+            for cat, items in news_data.items():
+                for n in items:
+                    titulo = n.get('titulo', '')[:60] + "..." if len(n.get('titulo', '')) > 60 else n.get('titulo', '')
+                    impacto = n.get('impacto_estimado', '-')
+                    url = n.get('url', '#')
+                    md += f"| {cat} | [{titulo}]({url}) | {impacto} |\n"
+        else:
+            md += "| *Sin noticias* | - | - |\n"
+            
+        md += "\n"
+        
         return md
 
     @staticmethod
