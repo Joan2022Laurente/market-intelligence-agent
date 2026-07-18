@@ -21,8 +21,8 @@ class BinancePortfolioCollector(BaseCollector):
         super().__init__(name="BinancePortfolio", timeout=20)
         self.api_key = os.environ.get("BINANCE_API_KEY")
         self.api_secret = os.environ.get("BINANCE_API_SECRET")
-        # Usamos api.binance.us para evadir restricciones geográficas en servidores de EEUU
-        self.base_url = "https://api.binance.us"
+        # Usamos api.binance.com ya que la IP del servidor Lightning está en la lista blanca
+        self.base_url = "https://api.binance.com"
 
     def _sign(self, query_string: str) -> str:
         """Genera la firma HMAC SHA256 requerida por la API privada de Binance."""
