@@ -1,7 +1,7 @@
 import pytest
 import asyncio
 from collectors.crypto import CoinGeckoCollector
-from collectors.sports import MockSportsCollector
+from collectors.sports import RealSportsCollector
 from collectors.news import RSSNewsCollector
 
 @pytest.mark.asyncio
@@ -12,7 +12,7 @@ async def test_concurrent_collectors():
     """
     collectors = [
         CoinGeckoCollector(),
-        MockSportsCollector(),
+        RealSportsCollector(),
         RSSNewsCollector()
     ]
     
@@ -27,7 +27,7 @@ async def test_concurrent_collectors():
     assert crypto_data[0].simbolo in ["BTC", "ETH", "SOL"]
     
     assert len(sports_data) > 0
-    assert sports_data[0].equipo_local == "Real Madrid"
+    assert sports_data[0].fuente.startswith("TheOddsAPI") or sports_data[0].fuente == "MockBet"
     
     assert len(news_data) > 0
     assert news_data[0].fuente == "Cointelegraph"
