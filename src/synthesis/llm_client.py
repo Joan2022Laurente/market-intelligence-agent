@@ -25,7 +25,7 @@ class LocalLLMClient:
             "exclusivamente en los datos proporcionados."
         )
         
-        user_prompt = f"Redacta el informe de hoy basándote en los siguientes datos pre-calculados:\n\n{json.dumps(context_data, indent=2)}"
+        user_prompt = f"Redacta el informe de hoy basándote en los siguientes datos pre-calculados:\n\n{json.dumps(context_data, indent=2, default=str)}"
 
         payload = {
             "model": self.model_name,

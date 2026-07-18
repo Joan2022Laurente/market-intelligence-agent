@@ -1,8 +1,8 @@
 import pytest
 import asyncio
-from src.collectors.crypto import MockCryptoCollector
-from src.collectors.sports import MockSportsCollector
-from src.collectors.news import MockNewsCollector
+from collectors.crypto import MockCryptoCollector
+from collectors.sports import MockSportsCollector
+from collectors.news import MockNewsCollector
 
 @pytest.mark.asyncio
 async def test_concurrent_collectors():

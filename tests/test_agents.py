@@ -1,8 +1,7 @@
-import pytest
-from src.schemas.crypto import PrecioActivo
-from src.schemas.sports import CuotaDeportiva
-from src.agents.crypto_analyst import CryptoAnalyst
-from src.agents.sports_analyst import SportsAnalyst
+from schemas.crypto import PrecioActivo
+from schemas.sports import CuotaDeportiva
+from agents.crypto_analyst import CryptoAnalyst
+from agents.sports_analyst import SportsAnalyst
 import datetime
 
 def test_crypto_analyst_math():
