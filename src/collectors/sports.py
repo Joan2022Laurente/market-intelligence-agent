@@ -53,10 +53,23 @@ class RealSportsCollector(BaseCollector):
 
         resultados = []
         try:
-            for game in data[:8]:  # Los 8 próximos partidos más inminentes
-                # Prepend the sport title so the user knows the competition
+            # Filtrar priorizando fútbol u otros deportes mayores si es necesario, o solo procesar 15
+            for game in data[:15]:  # Ampliamos a 15 para capturar partidos más tarde en el día
                 competicion = game.get('sport_title', 'Competición')
-                evento = f"[{competicion}] {game['home_team']} vs {game['away_team']}"
+                
+                # Parsear la hora y convertir a Hora Peruana (UTC-5)
+                commence_time_str = game.get('commence_time')
+                hora_str = "Hora N/A"
+                if commence_time_str:
+                    try:
+                        # Formato típico: 2023-10-10T14:00:00Z
+                        dt_utc = datetime.datetime.strptime(commence_time_str, "%Y-%m-%dT%H:%M:%SZ")
+                        dt_peru = dt_utc - datetime.timedelta(hours=5)
+                        hora_str = dt_peru.strftime("%H:%M")
+                    except Exception:
+                        pass
+
+                evento = f"[{hora_str} PE] [{competicion}] {game['home_team']} vs {game['away_team']}"
                 if not game.get('bookmakers'):
                     continue
 
