@@ -6,7 +6,7 @@ import os
 # Asegurar que importamos desde src
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from collectors.crypto import CoinGeckoCollector
+from collectors.crypto import BinanceCollector
 from collectors.sports import RealSportsCollector
 from collectors.news import RSSNewsCollector
 
@@ -26,7 +26,7 @@ async def main():
     # 1. Recolección en paralelo (Async)
     print("Recolectando datos en paralelo...")
     collectors = [
-        CoinGeckoCollector(),
+        BinanceCollector(),
         RealSportsCollector(),
         RSSNewsCollector()
     ]
