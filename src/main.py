@@ -2,6 +2,7 @@ import asyncio
 import json
 import sys
 import os
+import aiohttp
 from dotenv import load_dotenv
 
 # Asegurar que importamos desde src
@@ -14,6 +15,7 @@ from collectors.crypto import BinanceCollector
 from collectors.sports import RealSportsCollector
 from collectors.news import RSSNewsCollector
 from collectors.portfolio import BinancePortfolioCollector
+from collectors.predictions import PredictionMarketsCollector
 
 from agents.crypto_analyst import CryptoAnalyst
 from agents.sports_analyst import SportsAnalyst
@@ -30,18 +32,36 @@ async def main():
 
     # 1. Recolección en paralelo (Async)
     print("Recolectando datos en paralelo...")
-    collectors = [
-        BinanceCollector(),
-        RealSportsCollector(),
-        RSSNewsCollector(),
-        BinancePortfolioCollector()
-    ]
-    raw_data = await asyncio.gather(*(c.collect() for c in collectors))
+    
+    async def fetch_usd_pen(session: aiohttp.ClientSession) -> float:
+        try:
+            async with session.get("https://open.er-api.com/v6/latest/USD") as resp:
+                data = await resp.json()
+                return data.get("rates", {}).get("PEN", 3.75) # 3.75 como fallback
+        except Exception:
+            return 3.75
+
+    async with aiohttp.ClientSession() as session:
+        usd_pen_task = fetch_usd_pen(session)
+        collectors = [
+            BinanceCollector(),
+            RealSportsCollector(),
+            RSSNewsCollector(),
+            BinancePortfolioCollector(),
+            PredictionMarketsCollector()
+        ]
+        
+        # Ejecutar todos incluyendo el tipo de cambio
+        results = await asyncio.gather(usd_pen_task, *(c.collect() for c in collectors))
+        
+    usd_to_pen = results[0]
+    raw_data = results[1:]
 
     precios = raw_data[0]
     cuotas = raw_data[1]
     noticias = raw_data[2]
     portfolio = raw_data[3]
+    predicciones = raw_data[4]
 
     total_spot_usd = sum(
         val for asset, val in portfolio.get("spot", {}).items() if asset == "USDT"
@@ -84,8 +104,10 @@ async def main():
             "spot": portfolio.get("spot", {}),
             "earn": portfolio.get("earn", {}),
             "pnl_data": portfolio.get("pnl_data", {}),
-            "nota": "Saldos extraídos en tiempo real desde la API de Binance. 'pnl_data' contiene el precio promedio de compra histórico (avg_buy_price) de los activos. Úsalo para calcular ganancias o pérdidas (PNL) contra el precio actual."
+            "tipo_cambio_pen": usd_to_pen,
+            "nota": "Saldos extraídos en tiempo real desde la API de Binance. Usa tipo_cambio_pen para mostrar el valor total del portafolio en Soles (PEN)."
         },
+        "predicciones_activas": predicciones,
         "crypto_indicators": [_clean_for_llm(i.model_dump()) for i in indicadores_cripto],
         "sports_analysis": [a.model_dump() for a in analisis_deportivo],
         "news_groups": {k: [n.model_dump() for n in v] for k, v in noticias_agrupadas.items()},
