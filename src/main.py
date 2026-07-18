@@ -9,6 +9,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from collectors.crypto import BinanceCollector
 from collectors.sports import RealSportsCollector
 from collectors.news import RSSNewsCollector
+from collectors.portfolio import BinancePortfolioCollector
 
 from agents.crypto_analyst import CryptoAnalyst
 from agents.sports_analyst import SportsAnalyst
@@ -28,17 +29,25 @@ async def main():
     collectors = [
         BinanceCollector(),
         RealSportsCollector(),
-        RSSNewsCollector()
+        RSSNewsCollector(),
+        BinancePortfolioCollector()
     ]
     raw_data = await asyncio.gather(*(c.collect() for c in collectors))
 
     precios = raw_data[0]
     cuotas = raw_data[1]
     noticias = raw_data[2]
+    portfolio = raw_data[3]
+
+    total_spot_usd = sum(
+        val for asset, val in portfolio.get("spot", {}).items() if asset == "USDT"
+    )
+    total_earn_usd = portfolio.get("earn", {})
 
     print(f"  ✓ Cripto: {len(precios)} activos")
     print(f"  ✓ Deportes: {len(cuotas)} partidos {'(REALES)' if cuotas and not cuotas[0].es_simulado else '(Simulados)'}")
     print(f"  ✓ Noticias: {len(noticias)} artículos de {len(set(n.fuente for n in noticias))} fuentes")
+    print(f"  ✓ Portafolio Binance: Spot={portfolio.get('spot', {})}, Earn={total_earn_usd}")
 
     # 2. Guardar datos crudos en DuckDB
     print("Guardando datos crudos en DuckDB...")
@@ -66,6 +75,12 @@ async def main():
         return d
 
     context_para_llm = {
+        "usuario": "Joan Joaquin Callañaupa Laurente",
+        "portfolio_binance": {
+            "spot": portfolio.get("spot", {}),
+            "earn": portfolio.get("earn", {}),
+            "nota": "Saldos extraídos en tiempo real desde la API de Binance. Usa estos valores exactos para calcular porcentajes de riesgo."
+        },
         "crypto_indicators": [_clean_for_llm(i.model_dump()) for i in indicadores_cripto],
         "sports_analysis": [a.model_dump() for a in analisis_deportivo],
         "news_groups": {k: [n.model_dump() for n in v] for k, v in noticias_agrupadas.items()},
